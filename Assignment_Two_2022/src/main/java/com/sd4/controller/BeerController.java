@@ -3,12 +3,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.sd4.controller;
-
+import com.google.gson.Gson;
 import com.sd4.model.Beer;
 import com.sd4.service.BeerService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.MediaTypes;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,7 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 /**
  *
  * @author Saoir
@@ -29,18 +31,21 @@ public class BeerController {
     private BeerService beerService;
     
     @GetMapping("/beers")
-    public String getAll() {
-        return beerService.findAll().toString();
+    public ResponseEntity getAll() {
+        return new ResponseEntity(new Gson().toJson(beerService.findAll()), HttpStatus.OK);
     }
     
-    @GetMapping("/beers/{id}")
+    @GetMapping(value = "/beers/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Beer> getOne(@PathVariable long id) {
        Optional<Beer> o =  beerService.findOne(id);
        
        if (!o.isPresent()) 
             return new ResponseEntity(HttpStatus.NOT_FOUND);
-         else 
-            return ResponseEntity.ok(o.get());
+       else{
+           Link allBeersLink = linkTo(methodOn(BeerController.class).getAll()).withSelfRel();
+           o.get().add(allBeersLink);
+           return ResponseEntity.ok(o.get());
+       }
     }
     
     @GetMapping("/beers/count")

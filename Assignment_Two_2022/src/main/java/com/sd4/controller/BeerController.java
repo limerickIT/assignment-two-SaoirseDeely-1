@@ -5,9 +5,12 @@
 package com.sd4.controller;
 import com.google.gson.Gson;
 import com.sd4.model.Beer;
+import com.sd4.model.Brewery;
 import com.sd4.service.BeerService;
+import com.sd4.service.BreweryService;
 import java.util.List;
 import java.util.Optional;
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -30,9 +33,19 @@ public class BeerController {
     @Autowired
     private BeerService beerService;
     
-    @GetMapping("/beers")
-    public ResponseEntity getAll() {
-        return new ResponseEntity(new Gson().toJson(beerService.findAll()), HttpStatus.OK);
+    @Autowired
+    private BreweryService breweryService;
+    
+    @GetMapping(value = "/beers", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<List<Beer>> getAll() {
+        List<Beer> beers = beerService.findAll();
+        for(Beer b : beers) {
+            Link selfBeerLink = linkTo(methodOn(BeerController.class).getOne(b.getId())).withSelfRel();
+            b.add(selfBeerLink);
+            Link beerDetailsLink = linkTo(methodOn(BeerController.class).getBeerDetails(b.getId())).withRel("details");
+            b.add(beerDetailsLink);
+        }
+        return ResponseEntity.ok(beers);
     }
     
     @GetMapping(value = "/beers/{id}", produces = MediaTypes.HAL_JSON_VALUE)
@@ -45,6 +58,24 @@ public class BeerController {
            Link allBeersLink = linkTo(methodOn(BeerController.class).getAll()).withSelfRel();
            o.get().add(allBeersLink);
            return ResponseEntity.ok(o.get());
+       }
+    }
+    
+    @GetMapping(value = "/beers/{id}/details", produces = MediaTypes.HAL_JSON_VALUE)
+    public ResponseEntity<JSONObject> getBeerDetails(@PathVariable long id) {
+       Optional<Beer> o =  beerService.findOne(id);
+       
+       if (!o.isPresent()) 
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+       else{
+           JSONObject response = new JSONObject();
+           Beer b = o.orElse(new Beer());
+           response.appendField("name", b.getName());
+           response.appendField("description", b.getDescription());
+           Optional<Brewery> ob = breweryService.findOne(b.getBrewery_id());
+           Brewery brewery = ob.orElse(new Brewery());
+           response.appendField("brewery_name", brewery.getName());
+           return ResponseEntity.ok(response);
        }
     }
     

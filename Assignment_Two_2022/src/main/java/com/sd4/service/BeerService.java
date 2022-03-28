@@ -6,6 +6,7 @@ package com.sd4.service;
 
 import com.sd4.model.Beer;
 import com.sd4.repository.BeerRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,16 @@ public class BeerService {
 
     public List<Beer> findAll() {
         return (List<Beer>) beerRepo.findAll();
+    }
+    
+    public List<Beer> findAllByBrewery(Long id) {
+        List<Beer> allBeers = (List<Beer>) beerRepo.findAll();
+        List<Beer> breweryBeers = new ArrayList();
+        for(Beer b : allBeers) {
+            if(b.getBrewery_id() == id)
+                breweryBeers.add(b);
+        }
+        return breweryBeers;
     }
 
     public long count() {

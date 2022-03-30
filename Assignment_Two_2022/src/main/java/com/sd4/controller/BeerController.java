@@ -3,15 +3,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.sd4.controller;
-import com.google.gson.Gson;
 import com.sd4.model.Beer;
 import com.sd4.model.Brewery;
 import com.sd4.service.BeerService;
 import com.sd4.service.BreweryService;
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
@@ -23,7 +24,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 /**
  *
  * @author Saoir

@@ -6,6 +6,7 @@ package com.sd4.service;
 
 import com.sd4.model.Beer;
 import com.sd4.repository.BeerRepository;
+import java.awt.print.Pageable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

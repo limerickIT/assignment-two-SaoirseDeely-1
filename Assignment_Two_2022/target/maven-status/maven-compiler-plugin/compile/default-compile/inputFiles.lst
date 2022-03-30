@@ -3,8 +3,10 @@ C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\c
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\service\BreweryService.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\model\Category.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\repository\BeerRepository.java
+C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\service\Breweries_GeocodeService.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\service\BeerService.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\model\Breweries_Geocode.java
+C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\repository\Breweries_GeocodeRepository.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\controller\BreweryController.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\model\Style.java
 C:\Users\Saoir\assignment-two-SaoirseDeely-1\Assignment_Two_2022\src\main\java\com\sd4\application\AssignmentTwo2022Application.java

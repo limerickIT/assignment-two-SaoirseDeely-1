@@ -5,9 +5,17 @@
 package com.sd4.controller;
 
 import com.sd4.model.Beer;
+import com.sd4.model.Breweries_Geocode;
 import com.sd4.model.Brewery;
 import com.sd4.service.BeerService;
+import com.sd4.service.Breweries_GeocodeService;
 import com.sd4.service.BreweryService;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +43,8 @@ public class BreweryController {
     private BreweryService breweryService;
     @Autowired
     private BeerService beerService;
+    @Autowired
+    private Breweries_GeocodeService breweriesGeocodeService;
     
     @GetMapping(value = "/breweries", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<List<Brewery>> getAll() {
@@ -63,12 +73,26 @@ public class BreweryController {
        }
     }
     
+    @GetMapping("/breweries/{id}/map")
+    public ResponseEntity<String> getBreweryMap(@PathVariable long id) throws MalformedURLException, IOException {
+       Optional<Brewery> o =  breweryService.findOne(id);
+       
+       if (!o.isPresent()) 
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+       else {
+           Brewery brewery = o.orElse(new Brewery());
+           Breweries_Geocode bg = breweriesGeocodeService.findOneByBreweryID(brewery.getId());
+           String url = "https://dev.virtualearth.net/REST/v1/Imagery/Map/Road/" + bg.getLatitude() + ',' + bg.getLongitude() + "/18?mapSize=500,500&mapLayer=Basemap,Buildings&pushpin=" + bg.getLatitude() + ',' + bg.getLongitude() + ";89&key=AviDzozBZePHU-0qym2Wvn0_yXtVE641qbKHgZ2jeGtUjLEnZkQc7x0uQo0MPz6B";
+           return ResponseEntity.ok("<html><body><h1>" + brewery.getName() + "</h1><h2>" + brewery.getAddress1() + "</h2><h2>" +  brewery.getAddress2() + "</h2><h2>" + brewery.getCity() + "</h2><h2>" + brewery.getState() + "</h2><h2>" + brewery.getCountry() + "</h2>" + "<img src=\"" + url + "\"" + "</body></html>");
+       }
+    }
+    
     @GetMapping("/breweries/count")
     public long getCount() {
         return breweryService.count();
     }
     
-    @DeleteMapping("/breweries/{id}")
+    @DeleteMapping("/breweries/{id}/delete")
     public ResponseEntity delete(@PathVariable long id) {
         breweryService.deleteByID(id);
         return new ResponseEntity(HttpStatus.OK);

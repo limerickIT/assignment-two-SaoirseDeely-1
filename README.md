@@ -11,3 +11,7 @@ Added self link to findOne beer, changed return type to JSON
 ##28/03/2022 22:32
 
 Added Brewery functionality
+
+##30/03/2022
+
+Added get brewery pinned on map method using the Bing maps api and the coordinates for breweries geocode object

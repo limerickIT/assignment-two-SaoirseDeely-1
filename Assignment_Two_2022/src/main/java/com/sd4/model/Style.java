@@ -23,8 +23,8 @@ import lombok.ToString;
 public class Style implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
-    private int cat_id;
+    private long id;
+    private long cat_id;
     private String style_name;
 
     @Temporal(TemporalType.TIMESTAMP)

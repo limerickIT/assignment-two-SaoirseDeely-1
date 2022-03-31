@@ -15,3 +15,7 @@ Added Brewery functionality
 ##30/03/2022
 
 Added get brewery pinned on map method using the Bing maps api and the coordinates for breweries geocode object
+
+##31/03/2022 15:06
+
+Added return thumbnail or large image for beer, and return pdf for beer

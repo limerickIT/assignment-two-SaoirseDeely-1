@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ public class Category implements Serializable {
     @Id
     @GeneratedValue(strategy =GenerationType.AUTO)
     private long id;
+    @NotBlank(message = "Category Name must not be empty")
     private String cat_name;
     
     @Temporal(TemporalType.TIMESTAMP)

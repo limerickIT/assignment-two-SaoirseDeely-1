@@ -20,6 +20,7 @@ import lombok.ToString;
 
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.validation.constraints.NotBlank;
 import org.springframework.hateoas.*;
 
 @Getter
@@ -33,14 +34,22 @@ public class Beer extends RepresentationModel<Beer> implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
+    @NotBlank(message = "Beer Brewery ID must not be empty")
     private long brewery_id;
+    @NotBlank(message = "Beer Name must not be empty")
     private String name;
+    @NotBlank(message = "Beer Category ID must not be empty")
     private long cat_id;
+    @NotBlank(message = "Beer Style ID must not be empty")
     private long style_id;
+    @NotBlank(message = "Beer ABV must not be empty")
     private Double abv;
+    @NotBlank(message = "Beer IBU must not be empty")
     private Double ibu;
+    @NotBlank(message = "Beer SRM must not be empty")
     private Double srm;
     
+    @NotBlank(message = "Beer Description must not be empty")
     @Lob 
     private String description;
     private Integer add_user;
@@ -48,8 +57,11 @@ public class Beer extends RepresentationModel<Beer> implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date last_mod;
 
+    @NotBlank(message = "Beer Image must not be empty")
     private String image;
+    @NotBlank(message = "Beer Buy Price must not be empty")
     private Double buy_price;
+    @NotBlank(message = "Beer Sell Price must not be empty")
     private Double sell_price;
 
 }

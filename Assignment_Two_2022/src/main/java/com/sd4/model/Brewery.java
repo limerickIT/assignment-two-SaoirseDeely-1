@@ -15,6 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,18 +38,28 @@ public class Brewery extends RepresentationModel<Beer> implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @NotBlank(message = "Brewery Name must not be empty")
     private String name;
+    @NotBlank(message = "Brewery Address must not be empty")
     private String address1;
     private String address2;
+    @NotBlank(message = "Brewery City must not be empty")
     private String city;
+    @NotBlank(message = "Brewery State must not be empty")
     private String state;
+    @NotBlank(message = "Brewery Code must not be empty")
     private String code;
+    @NotBlank(message = "Brewery Country must not be empty")
     private String country;
+    @NotBlank(message = "Brewery Phone must not be empty")
     private String phone;
+    @NotBlank(message = "Brewery Website must not be empty")
     private String website;
+    @NotBlank(message = "Brewery Image must not be empty")
     private String image;
     
     @Lob
+    @NotBlank(message = "Brewery Description must not be empty")
     private String description;
     
     private Integer add_user;
@@ -55,6 +67,8 @@ public class Brewery extends RepresentationModel<Beer> implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date last_mod;
     
+    @NotBlank(message = "Brewery Credit Limit must not be empty")
     private Double credit_limit;
+    @NotBlank(message = "Brewery Email must not be empty")
     private String email;
 }

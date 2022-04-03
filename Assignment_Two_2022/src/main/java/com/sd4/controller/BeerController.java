@@ -13,6 +13,9 @@ import com.sd4.service.CategoryService;
 import com.sd4.service.StyleService;
 import java.awt.print.Pageable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -22,6 +25,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -69,19 +74,22 @@ public class BeerController {
     @GetMapping(value = "/beers", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<List<Beer>> getAll() {
         List<Beer> beers = beerService.findAll();
-        for(Beer b : beers) {
-            Link selfBeerLink = linkTo(methodOn(BeerController.class).getOne(b.getId())).withSelfRel();
-            b.add(selfBeerLink);
-            Link beerDetailsLink = linkTo(methodOn(BeerController.class).getBeerDetails(b.getId())).withRel("details");
-            b.add(beerDetailsLink);
+        if(beers.isEmpty()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        } else {
+            for(Beer b : beers) {
+                Link selfBeerLink = linkTo(methodOn(BeerController.class).getOne(b.getId())).withSelfRel();
+                b.add(selfBeerLink);
+                Link beerDetailsLink = linkTo(methodOn(BeerController.class).getBeerDetails(b.getId())).withRel("details");
+                b.add(beerDetailsLink);
+            }
+            return ResponseEntity.ok(beers);
         }
-        return ResponseEntity.ok(beers);
     }
     
     @GetMapping(value = "/beers/{id}", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<Beer> getOne(@PathVariable long id) {
        Optional<Beer> o =  beerService.findOne(id);
-       
        if (!o.isPresent()) 
             return new ResponseEntity(HttpStatus.NOT_FOUND);
        else{
@@ -94,7 +102,6 @@ public class BeerController {
     @GetMapping(value = "/beers/{id}/details", produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<JSONObject> getBeerDetails(@PathVariable long id) {
        Optional<Beer> o =  beerService.findOne(id);
-       
        if (!o.isPresent()) 
             return new ResponseEntity(HttpStatus.NOT_FOUND);
        else{
@@ -112,77 +119,116 @@ public class BeerController {
     @GetMapping(value = "/beers/{id}/{size}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<byte[]> getBeerImage(@PathVariable long id, @PathVariable String size) throws IOException {
         Optional<Beer> o =  beerService.findOne(id);
-        Beer beer = o.orElse(new Beer());
-        byte[] content = null;
-        if(size.equalsIgnoreCase("large")) {
-            content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/large/" + beer.getImage()));
-        } else if(size.equalsIgnoreCase("thumbnail")) {
-            content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/thumbs/" + beer.getImage()));
+        if(!o.isPresent()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        } else {
+            Beer beer = o.orElse(new Beer());
+            byte[] content = null;
+            if(size.equalsIgnoreCase("large")) {
+                content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/large/" + beer.getImage()));
+            } else if(size.equalsIgnoreCase("thumbnail")) {
+                content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/thumbs/" + beer.getImage()));
+            }
+            if(content == null) {
+                return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            } else {
+                return ResponseEntity.ok(content);
+            }
         }
-        return ResponseEntity.ok(content);
+    }
+    
+    @GetMapping(value = "/beers/images", produces = "application/zip")
+    public ResponseEntity<byte[]> getAllBeerImages() throws FileNotFoundException, IOException {
+        File largeImgsFolder = new File("src/main/resources/static/assets/images/large");
+        File[] largeImgs = largeImgsFolder.listFiles();
+        File smallImgsFolder = new File("src/main/resources/static/assets/images/thumbs");
+        File[] smallImgs = smallImgsFolder.listFiles();
+        FileOutputStream fos = new FileOutputStream("src/main/resources/static/assets/images/all.zip");
+        ZipOutputStream zos = new ZipOutputStream(fos);
+        for(File f : largeImgs) {
+            zos.putNextEntry(new ZipEntry("large/" + f.getName()));
+            FileInputStream fileInputStream = new FileInputStream(f);
+            fileInputStream.close();
+            zos.closeEntry();
+        }
+        for(File f : smallImgs) {
+            zos.putNextEntry(new ZipEntry("thumbs/" + f.getName()));
+            FileInputStream fileInputStream = new FileInputStream(f);
+            IOUtils.copy(fileInputStream, zos);
+            fileInputStream.close();
+            zos.closeEntry();
+        }
+        zos.finish();
+        zos.flush();
+        IOUtils.closeQuietly(zos);
+        fos.close();
+        return ResponseEntity.ok(Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/all.zip")));
     }
     
     @GetMapping(value = "/beers/{id}/pdf", produces = "application/pdf")
     public ResponseEntity<byte[]> getBeerBrochure(@PathVariable long id) throws IOException {
-        
            Optional<Beer> o =  beerService.findOne(id);
-           Beer beer = o.orElse(new Beer());
-           Optional<Brewery> ob = breweryService.findOne(beer.getBrewery_id());
-           Brewery brewery = ob.orElse(new Brewery());
-           Optional<Category> oc = categoryService.findOne(beer.getCat_id());
-           Category category = oc.orElse(new Category());
-           Optional<Style> os = styleService.findOne(beer.getStyle_id());
-           Style style = os.orElse(new Style());
-           PDDocument beerBrochure= new PDDocument();  
-           beerBrochure.addPage(new PDPage());
-           PDPage page = beerBrochure.getPage(0);
-           PDPageContentStream contentStream = new PDPageContentStream(beerBrochure, page);
-           PDImageXObject beerImage = PDImageXObject.createFromFile("src/main/resources/static/assets/images/large/" + beer.getImage(), beerBrochure);
-           contentStream.drawImage(beerImage, 70, 250);
-           contentStream.close();
-           beerBrochure.addPage(new PDPage());
-           page = beerBrochure.getPage(1);
-           contentStream = new PDPageContentStream(beerBrochure, page);
-           contentStream.beginText();
-           contentStream.newLineAtOffset(25, 700);
-           contentStream.setLeading(14.5f);
-           contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
-           contentStream.showText("Name: " + beer.getName());
-           contentStream.newLine();
-           contentStream.showText("ABV: " + beer.getAbv().toString());
-           contentStream.newLine();
-           char[] charArray = beer.getDescription().toCharArray();
-           int numCommas = 0;
-           contentStream.showText("Description: ");
-           for(char c : charArray) {
-               contentStream.showText(String.valueOf(c));
-               if(c == '.') {
-                   contentStream.newLine();
-               } else if(c == ',') {
-                   numCommas++;
-                   if(numCommas >= 2) {
-                       contentStream.newLine();
-                       numCommas = 0;
-                   }
-               }
+           if(!o.isPresent()) {
+               return new ResponseEntity(HttpStatus.NOT_FOUND);
+           } else {
+                Beer beer = o.orElse(new Beer());
+                Optional<Brewery> ob = breweryService.findOne(beer.getBrewery_id());
+                Brewery brewery = ob.orElse(new Brewery());
+                Optional<Category> oc = categoryService.findOne(beer.getCat_id());
+                Category category = oc.orElse(new Category());
+                Optional<Style> os = styleService.findOne(beer.getStyle_id());
+                Style style = os.orElse(new Style());
+                PDDocument beerBrochure= new PDDocument();  
+                beerBrochure.addPage(new PDPage());
+                PDPage page = beerBrochure.getPage(0);
+                PDPageContentStream contentStream = new PDPageContentStream(beerBrochure, page);
+                PDImageXObject beerImage = PDImageXObject.createFromFile("src/main/resources/static/assets/images/large/" + beer.getImage(), beerBrochure);
+                contentStream.drawImage(beerImage, 70, 250);
+                contentStream.close();
+                beerBrochure.addPage(new PDPage());
+                page = beerBrochure.getPage(1);
+                contentStream = new PDPageContentStream(beerBrochure, page);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(25, 700);
+                contentStream.setLeading(14.5f);
+                contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
+                contentStream.showText("Name: " + beer.getName());
+                contentStream.newLine();
+                contentStream.showText("ABV: " + beer.getAbv().toString());
+                contentStream.newLine();
+                char[] charArray = beer.getDescription().toCharArray();
+                int numCommas = 0;
+                contentStream.showText("Description: ");
+                for(char c : charArray) {
+                    contentStream.showText(String.valueOf(c));
+                    if(c == '.') {
+                        contentStream.newLine();
+                    } else if(c == ',') {
+                        numCommas++;
+                        if(numCommas >= 2) {
+                            contentStream.newLine();
+                            numCommas = 0;
+                        }
+                    }
+                }
+                contentStream.newLine();
+                DecimalFormat df = new DecimalFormat("#.##");
+                contentStream.showText("Price: €" + df.format(beer.getSell_price()));
+                contentStream.newLine();
+                contentStream.showText("Brewery: " + brewery.getName());
+                contentStream.newLine();
+                contentStream.showText("Website: " + brewery.getWebsite());
+                contentStream.newLine();
+                contentStream.showText("Category: " + category.getCat_name());
+                contentStream.newLine();
+                contentStream.showText("Style: " + style.getStyle_name());
+                contentStream.endText();
+                contentStream.close();
+                beerBrochure.save("src/main/resources/static/assets/brochures/" + beer.getId() + ".pdf");
+                beerBrochure.close();
+                byte[] content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/brochures/" + beer.getId() + ".pdf"));
+                return ResponseEntity.ok(content);
            }
-           contentStream.newLine();
-           DecimalFormat df = new DecimalFormat("#.##");
-           contentStream.showText("Price: €" + df.format(beer.getSell_price()));
-           contentStream.newLine();
-           contentStream.showText("Brewery: " + brewery.getName());
-           contentStream.newLine();
-           contentStream.showText("Website: " + brewery.getWebsite());
-           contentStream.newLine();
-           contentStream.showText("Category: " + category.getCat_name());
-           contentStream.newLine();
-           contentStream.showText("Style: " + style.getStyle_name());
-           contentStream.endText();
-           contentStream.close();
-           beerBrochure.save("src/main/resources/static/assets/brochures/" + beer.getId() + ".pdf");
-           beerBrochure.close();
-           byte[] content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/brochures/" + beer.getId() + ".pdf"));
-           return ResponseEntity.ok(content);
     }
     
     @GetMapping("/beers/count")

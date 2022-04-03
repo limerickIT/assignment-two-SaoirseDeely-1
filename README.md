@@ -19,3 +19,7 @@ Added get brewery pinned on map method using the Bing maps api and the coordinat
 ##31/03/2022 15:06
 
 Added return thumbnail or large image for beer, and return pdf for beer
+
+##03/04/2022
+
+Added brewery qr code and bean validation

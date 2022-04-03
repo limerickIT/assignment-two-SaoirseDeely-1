@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,8 +32,11 @@ public class Breweries_Geocode implements Serializable {
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
    long id ;
+   @NotBlank(message = "Breweries Geocode Brewery ID must not be empty")
    long brewery_id;
+   @NotBlank(message = "Breweries Geocode Latitude must not be empty")
    Double latitude;
+   @NotBlank(message = "Breweries Geocode Longitude must not be empty")
    Double longitude;
     
 }

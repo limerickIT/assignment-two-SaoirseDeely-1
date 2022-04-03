@@ -55,7 +55,7 @@ public class BreweryController {
     @Autowired
     private Breweries_GeocodeService breweriesGeocodeService;
     
-    @GetMapping(value = "/breweries", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/breweries", produces = "application/json")
     public ResponseEntity<List<Brewery>> getAll() {
         List<Brewery> breweries = breweryService.findAll();
         if(breweries.isEmpty()) {
@@ -95,9 +95,14 @@ public class BreweryController {
        else {
            Brewery brewery = o.orElse(new Brewery());
            Breweries_Geocode bg = breweriesGeocodeService.findOneByBreweryID(brewery.getId());
-           String url = "https://dev.virtualearth.net/REST/v1/Imagery/Map/Road/" + bg.getLatitude() + ',' + bg.getLongitude() + "/18?mapSize=500,500&mapLayer=Basemap,Buildings&pushpin=" + bg.getLatitude() + ',' + bg.getLongitude() + ";89&key=AviDzozBZePHU-0qym2Wvn0_yXtVE641qbKHgZ2jeGtUjLEnZkQc7x0uQo0MPz6B";
-           return ResponseEntity.ok("<html><body><h1>" + brewery.getName() + "</h1><h2>" + brewery.getAddress1() + "</h2><h2>" +  brewery.getAddress2() + "</h2><h2>" + brewery.getCity() + "</h2><h2>" + brewery.getState() + "</h2><h2>" + brewery.getCountry() + "</h2>" + "<img src=\"" + url + "\"" + "</body></html>");
-       }
+           if(bg.getLatitude() == null || bg.getLongitude() == null) {
+               return ResponseEntity.ok("<html><body><h1>" + brewery.getName() + "</h1><h2>" + brewery.getAddress1() + "</h2><h2>" +  brewery.getAddress2() + "</h2><h2>" + brewery.getCity() + "</h2><h2>" + brewery.getState() + "</h2><h2>" + brewery.getCountry() + "</h2>" + "<h2>Apologies, no coordinates were found for this brewery</h2>" + "</body></html>");
+           } else {
+               String url = "https://dev.virtualearth.net/REST/v1/Imagery/Map/Road/" + bg.getLatitude() + ',' + bg.getLongitude() + "/18?mapSize=500,500&mapLayer=Basemap,Buildings&pushpin=" + bg.getLatitude() + ',' + bg.getLongitude() + ";89&key=AviDzozBZePHU-0qym2Wvn0_yXtVE641qbKHgZ2jeGtUjLEnZkQc7x0uQo0MPz6B";
+            return ResponseEntity.ok("<html><body><h1>" + brewery.getName() + "</h1><h2>" + brewery.getAddress1() + "</h2><h2>" +  brewery.getAddress2() + "</h2><h2>" + brewery.getCity() + "</h2><h2>" + brewery.getState() + "</h2><h2>" + brewery.getCountry() + "</h2>" + "<img src=\"" + url + "\"" + "</body></html>");
+       
+           }
+        }
     }
     
     @GetMapping(value = "/breweries/{id}/qr", produces = MediaType.IMAGE_PNG_VALUE)
@@ -127,13 +132,13 @@ public class BreweryController {
         return new ResponseEntity(HttpStatus.OK);
     }
     
-    @PostMapping("/breweries/")
+    @PostMapping(value = "/breweries/add", consumes = "application/json")
     public ResponseEntity add(@RequestBody Brewery b) {
         breweryService.saveBrewery(b);
         return new ResponseEntity(HttpStatus.CREATED);
     }
     
-    @PutMapping("/breweries/")
+    @PutMapping(value = "/breweries/edit", consumes = "application/json")
     public ResponseEntity edit(@RequestBody Brewery b) {
         if(getOne(b.getId()) == new ResponseEntity(HttpStatus.NOT_FOUND))
         {

@@ -236,19 +236,19 @@ public class BeerController {
         return beerService.count();
     }
     
-    @DeleteMapping("/beers/{id}")
+    @DeleteMapping("/beers/{id}/delete")
     public ResponseEntity delete(@PathVariable long id) {
         beerService.deleteByID(id);
         return new ResponseEntity(HttpStatus.OK);
     }
     
-    @PostMapping("/beers/")
+    @PostMapping(value = "/beers/add", consumes = "application/json")
     public ResponseEntity add(@RequestBody Beer b) {
         beerService.saveBeer(b);
         return new ResponseEntity(HttpStatus.CREATED);
     }
     
-    @PutMapping("/beers/")
+    @PutMapping(value = "/beers/edit", consumes = "application/json")
     public ResponseEntity edit(@RequestBody Beer b) {
         if(getOne(b.getId()) == new ResponseEntity(HttpStatus.NOT_FOUND))
         {

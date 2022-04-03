@@ -67,7 +67,6 @@ public class Brewery extends RepresentationModel<Beer> implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date last_mod;
     
-    @NotBlank(message = "Brewery Credit Limit must not be empty")
     private Double credit_limit;
     @NotBlank(message = "Brewery Email must not be empty")
     private String email;

@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -117,7 +118,7 @@ public class BeerController {
     }
     
     @GetMapping(value = "/beers/{id}/{size}", produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> getBeerImage(@PathVariable long id, @PathVariable String size) throws IOException {
+    public ResponseEntity<byte[]> getBeerImage(@PathVariable long id, @PathVariable String size) throws IOException, URISyntaxException {
         Optional<Beer> o =  beerService.findOne(id);
         if(!o.isPresent()) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -125,9 +126,9 @@ public class BeerController {
             Beer beer = o.orElse(new Beer());
             byte[] content = null;
             if(size.equalsIgnoreCase("large")) {
-                content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/large/" + beer.getImage()));
+                content = Files.readAllBytes(Path.of(this.getClass().getClassLoader().getResource("static/assets/images/large/" + beer.getImage()).toURI()));
             } else if(size.equalsIgnoreCase("thumbnail")) {
-                content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/thumbs/" + beer.getImage()));
+                content = Files.readAllBytes(Path.of(this.getClass().getClassLoader().getResource("static/assets/images/thumbs/" + beer.getImage()).toURI()));
             }
             if(content == null) {
                 return new ResponseEntity(HttpStatus.BAD_REQUEST);
@@ -138,12 +139,12 @@ public class BeerController {
     }
     
     @GetMapping(value = "/beers/images", produces = "application/zip")
-    public ResponseEntity<byte[]> getAllBeerImages() throws FileNotFoundException, IOException {
-        File largeImgsFolder = new File("src/main/resources/static/assets/images/large");
+    public ResponseEntity<byte[]> getAllBeerImages() throws FileNotFoundException, IOException, URISyntaxException {
+        File largeImgsFolder = new File(this.getClass().getClassLoader().getResource("static/assets/images/large").toURI());
         File[] largeImgs = largeImgsFolder.listFiles();
-        File smallImgsFolder = new File("src/main/resources/static/assets/images/thumbs");
+        File smallImgsFolder = new File(this.getClass().getClassLoader().getResource("static/assets/images/thumbs").toURI());
         File[] smallImgs = smallImgsFolder.listFiles();
-        FileOutputStream fos = new FileOutputStream("src/main/resources/static/assets/images/all.zip");
+        FileOutputStream fos = new FileOutputStream(new File(this.getClass().getClassLoader().getResource("static/assets/images/all.zip").toURI()));
         ZipOutputStream zos = new ZipOutputStream(fos);
         for(File f : largeImgs) {
             zos.putNextEntry(new ZipEntry("large/" + f.getName()));
@@ -162,11 +163,11 @@ public class BeerController {
         zos.flush();
         IOUtils.closeQuietly(zos);
         fos.close();
-        return ResponseEntity.ok(Files.readAllBytes(Paths.get("src/main/resources/static/assets/images/all.zip")));
+        return ResponseEntity.ok(Files.readAllBytes(Path.of(this.getClass().getClassLoader().getResource("static/assets/images/all.zip").toURI())));
     }
     
     @GetMapping(value = "/beers/{id}/pdf", produces = "application/pdf")
-    public ResponseEntity<byte[]> getBeerBrochure(@PathVariable long id) throws IOException {
+    public ResponseEntity<byte[]> getBeerBrochure(@PathVariable long id) throws IOException, URISyntaxException {
            Optional<Beer> o =  beerService.findOne(id);
            if(!o.isPresent()) {
                return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -182,7 +183,7 @@ public class BeerController {
                 beerBrochure.addPage(new PDPage());
                 PDPage page = beerBrochure.getPage(0);
                 PDPageContentStream contentStream = new PDPageContentStream(beerBrochure, page);
-                PDImageXObject beerImage = PDImageXObject.createFromFile("src/main/resources/static/assets/images/large/" + beer.getImage(), beerBrochure);
+                PDImageXObject beerImage = PDImageXObject.createFromFileByContent(new File(this.getClass().getClassLoader().getResource("static/assets/images/large/" + beer.getImage()).toURI()), beerBrochure);
                 contentStream.drawImage(beerImage, 70, 250);
                 contentStream.close();
                 beerBrochure.addPage(new PDPage());
@@ -224,10 +225,9 @@ public class BeerController {
                 contentStream.showText("Style: " + style.getStyle_name());
                 contentStream.endText();
                 contentStream.close();
-                beerBrochure.save("src/main/resources/static/assets/brochures/" + beer.getId() + ".pdf");
+                beerBrochure.save(new File(this.getClass().getClassLoader().getResource("static/assets/brochures/" + beer.getId() + ".pdf").toURI()));
                 beerBrochure.close();
-                byte[] content = Files.readAllBytes(Paths.get("src/main/resources/static/assets/brochures/" + beer.getId() + ".pdf"));
-                return ResponseEntity.ok(content);
+                return ResponseEntity.ok(Files.readAllBytes(Path.of(this.getClass().getClassLoader().getResource("static/assets/brochures/" + beer.getId() + ".pdf").toURI())));
            }
     }
     
